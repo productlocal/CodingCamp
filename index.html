@@ -1,53 +1,242 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Expense & Budget Visualizer</title>
-    
-    <link rel="stylesheet" href="css/style.css">
-    
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Visualizer Pengeluaran & Anggaran</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    
-    <main class="container">
-        <section class="balance-section">
-            <p>Total Pengeluaran</p>
-            <h1 id="total-balance">Rp 0</h1>
-        </section>
-        <section class="chart-section">
-            <canvas id="expenseChart"></canvas>
-        </section>
-        <section class="form-section">
-            <form id="expense-form">
-                <div class="input-group">
-                    <label for="item-name">Nama Barang</label>
-                    <input type="text" id="item-name" placeholder="Contoh: Makan Siang" required>
-                </div>
-                <div class="input-group">
-                    <label for="amount">Jumlah (Rp)</label>
-                    <input type="number" id="amount" placeholder="Contoh: 25000" required>
-                </div>
-                <div class="input-group">
-                    <label for="category">Kategori</label>
-                    <select id="category" required>
-                        <option value="" disabled selected>-- Pilih Kategori --</option>
-                        <option value="Food">Makanan</option>
-                        <option value="Transport">Transportasi</option>
-                        <option value="Fun">Hiburan</option>
-                    </select>
-                </div>
-                <button type="submit">Tambah Transaksi</button>
-            </form>
-        </section>
-        <section class="transaction-section">
-            <h3>Riwayat Transaksi</h3>
-            <ul id="transaction-list">
-            </ul>
-        </section>
-    </main>
-    <script src="js/script.js"></script>
 
+  <!-- ===== SIDEBAR NAV ===== -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <span class="logo-icon">💰</span>
+      <span class="logo-text">BudgetViz</span>
+    </div>
+    <ul class="nav-list">
+      <li><button class="nav-btn active" data-page="dashboard">
+        <span class="nav-icon">📊</span> Dashboard
+      </button></li>
+      <li><button class="nav-btn" data-page="transactions">
+        <span class="nav-icon">📋</span> Transaksi
+      </button></li>
+      <li><button class="nav-btn" data-page="budgets">
+        <span class="nav-icon">🎯</span> Anggaran
+      </button></li>
+    </ul>
+    <div class="sidebar-footer">
+      <button class="btn-clear-data" id="btnClearData">🗑 Hapus Semua Data</button>
+    </div>
+  </nav>
+
+  <!-- ===== MOBILE TOP BAR ===== -->
+  <header class="topbar">
+    <button class="hamburger" id="hamburger" aria-label="Toggle menu">☰</button>
+    <span class="topbar-title">💰 Expense & Budget Visualizer</span>
+    <div class="month-nav">
+      <button class="month-arrow" id="prevMonth">&#8249;</button>
+      <span class="month-label" id="monthLabel">—</span>
+      <button class="month-arrow" id="nextMonth">&#8250;</button>
+    </div>
+  </header>
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <main class="main-content">
+
+    <!-- ===== PAGE: DASHBOARD ===== -->
+    <section class="page" id="page-dashboard">
+      <div class="page-header">
+        <h1 class="page-title">Dashboard</h1>
+        <div class="month-nav desktop-only">
+          <button class="month-arrow" id="prevMonthDesktop">&#8249;</button>
+          <span class="month-label" id="monthLabelDesktop">—</span>
+          <button class="month-arrow" id="nextMonthDesktop">&#8250;</button>
+        </div>
+      </div>
+
+      <!-- Summary Cards -->
+      <div class="cards-grid">
+        <div class="card card-total-expense">
+          <div class="card-icon">💸</div>
+          <div class="card-body">
+            <p class="card-label">Total Pengeluaran</p>
+            <p class="card-value" id="totalExpense">Rp 0</p>
+          </div>
+        </div>
+        <div class="card card-budget">
+          <div class="card-icon">🎯</div>
+          <div class="card-body">
+            <p class="card-label">Total Anggaran</p>
+            <p class="card-value" id="totalBudget">Rp 0</p>
+          </div>
+        </div>
+        <div class="card card-remaining">
+          <div class="card-icon">💵</div>
+          <div class="card-body">
+            <p class="card-label">Sisa Anggaran</p>
+            <p class="card-value" id="remainingBudget">Rp 0</p>
+          </div>
+        </div>
+        <div class="card card-transactions">
+          <div class="card-icon">🧾</div>
+          <div class="card-body">
+            <p class="card-label">Jumlah Transaksi</p>
+            <p class="card-value" id="transactionCount">0</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Overall Progress Bar -->
+      <div class="budget-progress-section">
+        <div class="progress-header">
+          <span>Penggunaan Anggaran Keseluruhan</span>
+          <span id="progressPercent">0%</span>
+        </div>
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" id="progressBarFill"></div>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="charts-row">
+        <div class="chart-card">
+          <h2 class="chart-title">Anggaran vs Pengeluaran per Kategori</h2>
+          <div class="chart-container">
+            <canvas id="barChart"></canvas>
+          </div>
+          <p class="chart-empty-msg" id="barChartEmpty">Belum ada data untuk ditampilkan.</p>
+        </div>
+        <div class="chart-card">
+          <h2 class="chart-title">Komposisi Pengeluaran</h2>
+          <div class="chart-container pie-container">
+            <canvas id="pieChart"></canvas>
+          </div>
+          <div class="pie-legend" id="pieLegend"></div>
+          <p class="chart-empty-msg" id="pieChartEmpty">Belum ada pengeluaran bulan ini.</p>
+        </div>
+      </div>
+
+      <!-- Category breakdown table -->
+      <div class="category-table-card">
+        <h2 class="chart-title">Rincian per Kategori</h2>
+        <div class="table-wrapper">
+          <table class="category-table" id="categoryTable">
+            <thead>
+              <tr>
+                <th>Kategori</th>
+                <th>Anggaran</th>
+                <th>Pengeluaran</th>
+                <th>Sisa</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="categoryTableBody"></tbody>
+          </table>
+        </div>
+        <p class="chart-empty-msg" id="categoryTableEmpty">Belum ada data.</p>
+      </div>
+    </section>
+
+    <!-- ===== PAGE: TRANSACTIONS ===== -->
+    <section class="page hidden" id="page-transactions">
+      <div class="page-header">
+        <h1 class="page-title">Transaksi</h1>
+        <button class="btn-primary" id="btnAddTransaction">+ Tambah Transaksi</button>
+      </div>
+
+      <!-- Filters -->
+      <div class="filter-bar">
+        <input type="text" class="filter-input" id="searchInput" placeholder="🔍 Cari deskripsi..." />
+        <select class="filter-select" id="filterCategory">
+          <option value="">Semua Kategori</option>
+        </select>
+        <select class="filter-select" id="sortBy">
+          <option value="date-desc">Terbaru</option>
+          <option value="date-asc">Terlama</option>
+          <option value="amount-desc">Terbesar</option>
+          <option value="amount-asc">Terkecil</option>
+        </select>
+      </div>
+
+      <!-- Transaction List -->
+      <div class="transaction-list" id="transactionList"></div>
+      <p class="chart-empty-msg" id="transactionEmpty">Belum ada transaksi bulan ini.</p>
+    </section>
+
+    <!-- ===== PAGE: BUDGETS ===== -->
+    <section class="page hidden" id="page-budgets">
+      <div class="page-header">
+        <h1 class="page-title">Anggaran</h1>
+        <p class="page-subtitle" id="budgetMonthLabel">—</p>
+      </div>
+
+      <div class="budget-grid" id="budgetGrid"></div>
+    </section>
+
+  </main>
+
+  <!-- ===== MODAL: Add / Edit Transaction ===== -->
+  <div class="modal-overlay hidden" id="transactionModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modalTitle">Tambah Transaksi</h2>
+        <button class="modal-close" id="modalClose" aria-label="Tutup">&times;</button>
+      </div>
+      <form class="modal-form" id="transactionForm" novalidate>
+        <input type="hidden" id="editId" />
+
+        <div class="form-group">
+          <label for="inputDate">Tanggal</label>
+          <input type="date" id="inputDate" class="form-control" required />
+          <span class="form-error" id="errorDate"></span>
+        </div>
+
+        <div class="form-group">
+          <label for="inputCategory">Kategori</label>
+          <select id="inputCategory" class="form-control" required>
+            <option value="">-- Pilih kategori --</option>
+          </select>
+          <span class="form-error" id="errorCategory"></span>
+        </div>
+
+        <div class="form-group">
+          <label for="inputAmount">Jumlah (Rp)</label>
+          <input type="number" id="inputAmount" class="form-control" placeholder="50000" min="1" required />
+          <span class="form-error" id="errorAmount"></span>
+        </div>
+
+        <div class="form-group">
+          <label for="inputDesc">Deskripsi</label>
+          <input type="text" id="inputDesc" class="form-control" placeholder="Makan siang, dll." maxlength="100" />
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" id="modalCancel">Batal</button>
+          <button type="submit" class="btn-primary" id="modalSubmit">Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== MODAL: Confirm Delete ===== -->
+  <div class="modal-overlay hidden" id="confirmModal">
+    <div class="modal modal-sm">
+      <div class="modal-header">
+        <h2 class="modal-title">Konfirmasi Hapus</h2>
+        <button class="modal-close" id="confirmModalClose">&times;</button>
+      </div>
+      <p class="confirm-text" id="confirmText">Yakin ingin menghapus data ini?</p>
+      <div class="modal-actions">
+        <button class="btn-secondary" id="confirmCancel">Batal</button>
+        <button class="btn-danger" id="confirmOk">Hapus</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TOAST ===== -->
+  <div class="toast hidden" id="toast"></div>
+
+  <script src="app.js"></script>
 </body>
 </html>
