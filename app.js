@@ -389,7 +389,7 @@ function renderBudgets() {
       </div>
       <div class="budget-input-row">
         <input type="number" class="budget-input" id="budgetInput-${cat.id}"
-          value="${bud || ''}" placeholder="Masukkan anggaran..." min="1000000" />
+          value="${bud || ''}" placeholder="Masukkan anggaran..." min="0" />
         <button class="btn-save-budget" onclick="saveBudgetCategory('${cat.id}')">Simpan</button>
       </div>
       <div class="budget-stat">
